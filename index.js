@@ -1,12 +1,15 @@
 const express = require('express');
-const axios = require('axios'); // axios පාවිච්චි කරමු
+const axios = require('axios');
 const cors = require('cors');
-const app = express();
 
+// Security Certificate error එක මගහැරීමට (Bypass SSL)
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
+
+const app = express();
 app.use(cors());
 
 app.get('/', (req, res) => {
-    res.send('Dasun API is Active! 🚀');
+    res.send('Dasun API is Online! 🚀');
 });
 
 app.get('/api/ytmp4', async (req, res) => {
@@ -18,30 +21,30 @@ app.get('/api/ytmp4', async (req, res) => {
     }
 
     if (!videoUrl) {
-        return res.json({ status: false, error: "Please provide a YouTube URL." });
+        return res.json({ status: false, error: "YouTube Link එක ඇතුළත් කරන්න." });
     }
 
     try {
-        // අපි වෙනත් Public API එකක් පාවිච්චි කරලා ලින්ක් එක ගමු
-        // මොකද Vercel IPs ගොඩක් වෙලාවට YouTube එකෙන් කෙලින්ම ගන්න දෙන්නේ නැහැ
+        // Aggitech API එකෙන් දත්ත ලබාගැනීම
         const response = await axios.get(`https://api.aggitech.com/youtube/download?url=${videoUrl}`);
         
-        if (response.data) {
+        if (response.data && response.data.status) {
             res.json({
                 status: true,
                 creator: "Dasun",
-                title: response.data.title || "YouTube Video",
+                title: response.data.title,
+                thumbnail: response.data.thumbnail,
                 download_url: response.data.video_url || response.data.url
             });
         } else {
-            throw new Error("Data not found");
+            res.json({ status: false, error: "වීඩියෝ දත්ත හමු වුණේ නැත." });
         }
 
     } catch (e) {
         res.json({ 
             status: false, 
-            error: "දැනට YouTube එකෙන් දත්ත ලබාගැනීම අවහිර කර ඇත. පසුව උත්සාහ කරන්න.",
-            msg: e.message 
+            error: "දත්ත ලබාගැනීමේදී දෝෂයක් ඇති විය.",
+            message: e.message 
         });
     }
 });

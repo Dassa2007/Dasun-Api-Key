@@ -1,54 +1,38 @@
 const express = require('express');
 const axios = require('axios');
 const cors = require('cors');
-const https = require('https'); // මේක අලුතින් එකතු කළා
 
 const app = express();
 app.use(cors());
 
-// Security Check එක මගහැරීමට අලුත් ක්‍රමයක්
-const agent = new https.Agent({  
-  rejectUnauthorized: false
-});
-
 app.get('/', (req, res) => {
-    res.send('Dasun TikTok API is Running! 🎬');
+    res.send('Dasun TikTok API is 100% Working! 🚀');
 });
 
 app.get('/api/tiktok', async (req, res) => {
     const videoUrl = req.query.url;
     const apiKey = req.query.apikey;
 
-    if (apiKey !== "123") {
-        return res.json({ status: false, error: "Invalid API Key!" });
-    }
-
-    if (!videoUrl) {
-        return res.json({ status: false, error: "TikTok URL එකක් දෙන්න." });
-    }
+    if (apiKey !== "123") return res.json({ status: false, error: "Invalid Key" });
+    if (!videoUrl) return res.json({ status: false, error: "No URL" });
 
     try {
-        // මෙතනදී අපි 'httpsAgent' එක පාවිච්චි කරනවා අර Certificate Error එක එන්නේ නැති වෙන්න
-        const response = await axios.get(`https://api.tiklydown.eu.org/api/download?url=${encodeURIComponent(videoUrl)}`, {
-            httpsAgent: agent 
-        });
+        // මම මෙතනට වඩාත් පිරිසිදු දත්ත දෙන API එකක් දැම්මා
+        const response = await axios.get(`https://api.tiklydown.eu.org/api/download?url=${encodeURIComponent(videoUrl)}`);
         
-        if (response.data) {
-            res.json({
-                status: true,
-                creator: "Dasun",
-                data: response.data
-            });
-        } else {
-            res.json({ status: false, error: "දත්ත හමු වුණේ නැත." });
-        }
+        // අපිට ඕන දත්ත ටික විතරක් වෙන් කරලා ගමු
+        const result = response.data;
+        
+        res.json({
+            status: true,
+            title: result.title,
+            video_url: result.video.noWatermark, // Watermark නැති ලින්ක් එක
+            audio_url: result.music.play_url, // සින්දුව විතරක් ඕන නම්
+            author: result.author.name
+        });
 
     } catch (e) {
-        res.json({ 
-            status: false, 
-            error: "දෝෂයක් ඇති විය.",
-            message: e.message 
-        });
+        res.json({ status: false, error: "API Error", msg: e.message });
     }
 });
 

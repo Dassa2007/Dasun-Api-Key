@@ -1,12 +1,18 @@
 const express = require('express');
 const axios = require('axios');
 const cors = require('cors');
+const https = require('https'); // මේක අලුතින් එකතු කළා
 
 const app = express();
 app.use(cors());
 
+// Security Check එක මගහැරීමට අලුත් ක්‍රමයක්
+const agent = new https.Agent({  
+  rejectUnauthorized: false
+});
+
 app.get('/', (req, res) => {
-    res.send('Dasun TikTok Downloader API is Live! 🎬');
+    res.send('Dasun TikTok API is Running! 🎬');
 });
 
 app.get('/api/tiktok', async (req, res) => {
@@ -18,32 +24,29 @@ app.get('/api/tiktok', async (req, res) => {
     }
 
     if (!videoUrl) {
-        return res.json({ status: false, error: "TikTok URL එකක් ලබා දෙන්න." });
+        return res.json({ status: false, error: "TikTok URL එකක් දෙන්න." });
     }
 
     try {
-        // TikTok දත්ත ලබාගැනීම සඳහා විශ්වාසවන්ත API එකක්
-        const response = await axios.get(`https://api.tiklydown.eu.org/api/download?url=${encodeURIComponent(videoUrl)}`);
+        // මෙතනදී අපි 'httpsAgent' එක පාවිච්චි කරනවා අර Certificate Error එක එන්නේ නැති වෙන්න
+        const response = await axios.get(`https://api.tiklydown.eu.org/api/download?url=${encodeURIComponent(videoUrl)}`, {
+            httpsAgent: agent 
+        });
         
         if (response.data) {
-            const data = response.data;
             res.json({
                 status: true,
                 creator: "Dasun",
-                title: data.title || "TikTok Video",
-                author: data.author.name,
-                nowatermark_url: data.video.noWatermark, // Watermark නැති ලින්ක් එක
-                watermark_url: data.video.watermark,
-                cover: data.video.cover
+                data: response.data
             });
         } else {
-            res.json({ status: false, error: "වීඩියෝව සොයාගත නොහැකි විය." });
+            res.json({ status: false, error: "දත්ත හමු වුණේ නැත." });
         }
 
     } catch (e) {
         res.json({ 
             status: false, 
-            error: "TikTok දත්ත ලබාගැනීමේ දෝෂයකි.",
+            error: "දෝෂයක් ඇති විය.",
             message: e.message 
         });
     }

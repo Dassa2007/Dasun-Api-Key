@@ -6,43 +6,44 @@ const app = express();
 app.use(cors());
 
 app.get('/', (req, res) => {
-    res.send('Dasun API is running perfectly! 🌟');
+    res.send('Dasun TikTok Downloader API is Live! 🎬');
 });
 
-app.get('/api/ytmp4', async (req, res) => {
+app.get('/api/tiktok', async (req, res) => {
     const videoUrl = req.query.url;
     const apiKey = req.query.apikey;
 
     if (apiKey !== "123") {
-        return res.json({ status: false, error: "වැරදි API Key එකකි." });
+        return res.json({ status: false, error: "Invalid API Key!" });
     }
 
     if (!videoUrl) {
-        return res.json({ status: false, error: "YouTube URL එකක් ලබා දෙන්න." });
+        return res.json({ status: false, error: "TikTok URL එකක් ලබා දෙන්න." });
     }
 
     try {
-        // ඉතාමත් ස්ථාවර වෙනත් API එකක් පාවිච්චි කරමු
-        const response = await axios.get(`https://widipe.com/download/ytdl?url=${encodeURIComponent(videoUrl)}`);
+        // TikTok දත්ත ලබාගැනීම සඳහා විශ්වාසවන්ත API එකක්
+        const response = await axios.get(`https://api.tiklydown.eu.org/api/download?url=${encodeURIComponent(videoUrl)}`);
         
-        if (response.data && response.data.status) {
-            const result = response.data.result;
+        if (response.data) {
+            const data = response.data;
             res.json({
                 status: true,
                 creator: "Dasun",
-                title: result.title,
-                thumbnail: result.thumb,
-                duration: result.duration,
-                download_url: result.mp4 // වීඩියෝ ලින්ක් එක
+                title: data.title || "TikTok Video",
+                author: data.author.name,
+                nowatermark_url: data.video.noWatermark, // Watermark නැති ලින්ක් එක
+                watermark_url: data.video.watermark,
+                cover: data.video.cover
             });
         } else {
-            res.json({ status: false, error: "වීඩියෝ එක සොයාගත නොහැකි විය." });
+            res.json({ status: false, error: "වීඩියෝව සොයාගත නොහැකි විය." });
         }
 
     } catch (e) {
         res.json({ 
             status: false, 
-            error: "සර්වර් එකේ දෝෂයක් පවතී. පසුව උත්සාහ කරන්න.",
+            error: "TikTok දත්ත ලබාගැනීමේ දෝෂයකි.",
             message: e.message 
         });
     }

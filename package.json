@@ -1,10 +1,10 @@
 {
-  "name": "my-yt-api",
+  "name": "yt-downloader-api",
   "version": "1.0.0",
   "description": "YouTube Downloader API",
   "main": "index.js",
   "dependencies": {
-    "@distube/ytdl-core": "^4.15.1",
+    "@distube/ytdl-core": "latest",
     "cors": "^2.8.5",
     "express": "^4.19.2"
   }
